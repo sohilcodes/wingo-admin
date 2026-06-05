@@ -21,7 +21,6 @@ export default function Sidebar() {
 
   return (
     <div className="sidebar">
-      {/* Logo */}
       <div style={{ padding: "22px 20px 18px", borderBottom: "1px solid var(--border)" }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, color: "var(--indigo2)", letterSpacing: 3, marginBottom: 4 }}>
           WINGO ROYAL
@@ -31,13 +30,11 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Live indicator */}
       <div style={{ padding: "10px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
         <span className="live-dot" />
         <span style={{ fontSize: 11, color: "var(--green)", fontWeight: 600, letterSpacing: 1 }}>SYSTEM ONLINE</span>
       </div>
 
-      {/* Nav */}
       <nav style={{ flex: 1, padding: "12px 10px" }}>
         {navItems.map(item => {
           const active = path.startsWith(item.href);
@@ -61,7 +58,6 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Bottom */}
       <div style={{ padding: "14px 10px", borderTop: "1px solid var(--border)" }}>
         <div style={{
           display: "flex", alignItems: "center", gap: 10,
@@ -82,12 +78,11 @@ export default function Sidebar() {
         <button onClick={logout} style={{
           width: "100%", padding: "9px", borderRadius: 8,
           background: "transparent", border: "1px solid rgba(248,113,113,0.25)",
-          color: "var(--red)", fontSize: 12, fontWeight: 700,
+          color: "var(--red)", fontSize: 12, fontWeight: 700, cursor: "pointer"
         }}>
           ↩ Logout
         </button>
       </div>
     </div>
   );
-                }
-      
+}
