@@ -6,7 +6,7 @@ const navItems = [
   { href: "/dashboard",   icon: "▦",  label: "Dashboard" },
   { href: "/users",       icon: "◈",  label: "Users" },
   { href: "/deposits",    icon: "↓",  label: "Deposits" },
-  { href: "/withdraw", icon: "↑", label: "Withdrawals" ,
+  { href: "/withdraw", icon: "↑", label: "Withdrawals" },
   { href: "/results",     icon: "◉",  label: "Game Results" },
   { href: "/aviator",     icon: "✈",  label: "Aviator" },
 ];
