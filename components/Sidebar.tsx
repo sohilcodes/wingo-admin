@@ -8,6 +8,7 @@ const navItems = [
   { href: "/deposits",    icon: "↓",  label: "Deposits" },
   { href: "/withdrawals", icon: "↑",  label: "Withdrawals" },
   { href: "/results",     icon: "◉",  label: "Game Results" },
+  { href: "/aviator",     icon: "✈",  label: "Aviator" },
 ];
 
 export default function Sidebar() {
