@@ -20,7 +20,11 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (!search) return setFiltered(users);
-    setFiltered(users.filter(u => u.mobile?.includes(search) || String(u.id).includes(search)));
+    setFiltered(users.filter(u =>
+      u.mobile?.includes(search) ||
+      String(u.id).includes(search) ||
+      u.refer_code?.toLowerCase().includes(search.toLowerCase())
+    ));
   }, [search, users]);
 
   const fetchUsers = async () => {
@@ -28,7 +32,10 @@ export default function UsersPage() {
     try {
       const token = localStorage.getItem("adminToken");
       const res = await axios.get(`${API}/api/admin/users`, { headers: { Authorization: `Bearer ${token}` } });
-      if (res.data?.users) { setUsers(res.data.users); setFiltered(res.data.users); }
+      if (res.data?.success && res.data?.users) {
+        setUsers(res.data.users);
+        setFiltered(res.data.users);
+      }
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
