@@ -6,23 +6,12 @@ import Sidebar from "@/components/Sidebar";
 
 const API = "https://wingo-backend-gtqa.onrender.com";
 
-const MOCK_USERS = [
-  { id: 1, mobile: "9876543210", balance: 1500, status: "active",  totalBets: 42, totalDeposit: 5000,  createdAt: "2025-01-10" },
-  { id: 2, mobile: "9823411234", balance: 250,  status: "active",  totalBets: 12, totalDeposit: 1000,  createdAt: "2025-01-15" },
-  { id: 3, mobile: "9712309876", balance: 0,    status: "banned",  totalBets: 3,  totalDeposit: 500,   createdAt: "2025-01-20" },
-  { id: 4, mobile: "9654321098", balance: 8200, status: "active",  totalBets: 198,totalDeposit: 25000, createdAt: "2025-02-01" },
-  { id: 5, mobile: "9543210987", balance: 100,  status: "active",  totalBets: 5,  totalDeposit: 200,   createdAt: "2025-02-10" },
-  { id: 6, mobile: "9432109876", balance: 3400, status: "active",  totalBets: 87, totalDeposit: 12000, createdAt: "2025-02-18" },
-  { id: 7, mobile: "9321098765", balance: 50,   status: "inactive",totalBets: 1,  totalDeposit: 100,   createdAt: "2025-03-01" },
-];
-
 export default function UsersPage() {
   const router = useRouter();
   const [users, setUsers] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => {
     if (!localStorage.getItem("adminToken")) { router.push("/"); return; }
@@ -31,7 +20,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (!search) return setFiltered(users);
-    setFiltered(users.filter(u => u.mobile.includes(search) || String(u.id).includes(search)));
+    setFiltered(users.filter(u => u.mobile?.includes(search) || String(u.id).includes(search)));
   }, [search, users]);
 
   const fetchUsers = async () => {
@@ -40,38 +29,37 @@ export default function UsersPage() {
       const token = localStorage.getItem("adminToken");
       const res = await axios.get(`${API}/api/admin/users`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.data?.users) { setUsers(res.data.users); setFiltered(res.data.users); }
-      else { setUsers(MOCK_USERS); setFiltered(MOCK_USERS); }
-    } catch { setUsers(MOCK_USERS); setFiltered(MOCK_USERS); }
+    } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
 
   const toggleBan = async (user: any) => {
     const action = user.status === "banned" ? "unban" : "ban";
-    if (!confirm(`${action === "ban" ? "Ban" : "Unban"} user ****${user.mobile.slice(-4)}?`)) return;
+    if (!confirm(`${action === "ban" ? "Ban" : "Unban"} user ****${user.mobile?.slice(-4)}?`)) return;
     try {
       const token = localStorage.getItem("adminToken");
       await axios.post(`${API}/api/admin/users/${user.id}/${action}`, {}, { headers: { Authorization: `Bearer ${token}` } });
-    } catch {}
-    setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: action === "ban" ? "banned" : "active" } : u));
+      setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: action === "ban" ? "banned" : "active" } : u));
+    } catch (e) { alert("Failed"); }
   };
 
   const adjustBalance = async (user: any) => {
-    const amt = prompt(`Adjust balance for ****${user.mobile.slice(-4)}\nCurrent: ₹${user.balance}\nEnter amount (+500 or -200):`);
+    const amt = prompt(`Adjust balance for ****${user.mobile?.slice(-4)}\nCurrent: ₹${user.balance}\nEnter amount (+500 to add, -200 to deduct):`);
     if (!amt || isNaN(Number(amt))) return;
     try {
       const token = localStorage.getItem("adminToken");
       await axios.post(`${API}/api/admin/users/${user.id}/balance`, { amount: Number(amt) }, { headers: { Authorization: `Bearer ${token}` } });
-    } catch {}
-    setUsers(prev => prev.map(u => u.id === user.id ? { ...u, balance: u.balance + Number(amt) } : u));
-    alert(`Balance updated!`);
+      setUsers(prev => prev.map(u => u.id === user.id ? { ...u, balance: u.balance + Number(amt) } : u));
+      alert(`✅ Balance updated! New balance: ₹${user.balance + Number(amt)}`);
+    } catch { alert("Failed to update balance"); }
   };
+
+  const mask = (m: string) => m ? m.slice(0, 3) + "****" + m.slice(-3) : "—";
 
   const statusBadge = (s: string) => {
     const map: any = { active: "badge-green", banned: "badge-red", inactive: "badge-amber" };
-    return <span className={`badge ${map[s] || "badge-indigo"}`}>{s}</span>;
+    return <span className={`badge ${map[s] || "badge-indigo"}`}>{s || "active"}</span>;
   };
-
-  const mask = (m: string) => m?.slice(0, 3) + "****" + m?.slice(-3);
 
   return (
     <div style={{ display: "flex" }}>
@@ -83,24 +71,19 @@ export default function UsersPage() {
             <div style={{ fontSize: 11, color: "var(--text2)" }}>{users.length} total registered users</div>
           </div>
           <div style={{ display: "flex", gap: 10 }}>
-            <input
-              className="admin-input"
-              placeholder="Search by phone or ID..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{ width: 220 }}
-            />
+            <input className="admin-input" placeholder="Search mobile or ID..." value={search}
+              onChange={e => setSearch(e.target.value)} style={{ width: 220 }} />
             <button onClick={fetchUsers} className="btn-ghost" style={{ fontSize: 12, padding: "7px 14px" }}>↻ Refresh</button>
           </div>
         </div>
 
         <div className="page-body fade-up">
           {/* Summary */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14, marginBottom: 20 }}>
             {[
-              { label: "Total Users",   value: users.length,                              color: "var(--indigo2)" },
-              { label: "Active",        value: users.filter(u => u.status === "active").length,  color: "var(--green)" },
-              { label: "Banned",        value: users.filter(u => u.status === "banned").length, color: "var(--red)" },
+              { label: "Total",   value: users.length,                                        color: "var(--indigo2)" },
+              { label: "Active",  value: users.filter(u => u.status !== "banned").length,     color: "var(--green)" },
+              { label: "Banned",  value: users.filter(u => u.status === "banned").length,     color: "var(--red)" },
             ].map(s => (
               <div key={s.label} className="stat-card" style={{ padding: "16px 18px" }}>
                 <div style={{ fontSize: 11, color: "var(--text2)", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>{s.label}</div>
@@ -114,25 +97,25 @@ export default function UsersPage() {
               All Users ({filtered.length})
             </div>
             {loading ? (
-              <div style={{ padding: 40, textAlign: "center", color: "var(--text2)" }}>Loading users...</div>
+              <div style={{ padding: 40, textAlign: "center", color: "var(--text2)" }}>Loading real users...</div>
+            ) : filtered.length === 0 ? (
+              <div style={{ padding: 40, textAlign: "center", color: "var(--text2)" }}>No users found</div>
             ) : (
               <div style={{ overflowX: "auto" }}>
                 <table className="admin-table">
                   <thead>
-                    <tr>
-                      <th>ID</th><th>Phone</th><th>Balance</th><th>Total Deposit</th>
-                      <th>Total Bets</th><th>Joined</th><th>Status</th><th>Actions</th>
-                    </tr>
+                    <tr><th>ID</th><th>Phone</th><th>Balance</th><th>Total Deposit</th><th>Bets</th><th>Refer Code</th><th>Joined</th><th>Status</th><th>Actions</th></tr>
                   </thead>
                   <tbody>
                     {filtered.map(u => (
                       <tr key={u.id}>
                         <td style={{ fontFamily: "'DM Mono',monospace", color: "var(--text2)" }}>#{u.id}</td>
                         <td style={{ fontFamily: "'DM Mono',monospace" }}>{mask(u.mobile)}</td>
-                        <td style={{ fontFamily: "'Space Mono',monospace", color: "var(--amber)", fontWeight: 700 }}>₹{u.balance?.toLocaleString()}</td>
-                        <td style={{ color: "var(--green)" }}>₹{u.totalDeposit?.toLocaleString()}</td>
-                        <td style={{ color: "var(--cyan)" }}>{u.totalBets}</td>
-                        <td style={{ color: "var(--text2)", fontSize: 12 }}>{u.createdAt}</td>
+                        <td style={{ fontFamily: "'Space Mono',monospace", color: "var(--amber)", fontWeight: 700 }}>₹{(u.balance||0).toLocaleString()}</td>
+                        <td style={{ color: "var(--green)" }}>₹{(u.totalDeposit||0).toLocaleString()}</td>
+                        <td style={{ color: "var(--cyan)" }}>{u.totalBets||0}</td>
+                        <td><span className="badge badge-indigo">{u.refer_code || "—"}</span></td>
+                        <td style={{ color: "var(--text2)", fontSize: 12 }}>{u.createdAt || u.created_at?.slice(0,10)}</td>
                         <td>{statusBadge(u.status)}</td>
                         <td>
                           <div style={{ display: "flex", gap: 6 }}>
@@ -153,4 +136,4 @@ export default function UsersPage() {
       </div>
     </div>
   );
-                             }
+}
